@@ -196,18 +196,26 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
 
     // Animal logic
     animals.forEach((animal, i) => {
-      // Animals rotate slowly
-      animal.angle += 0.01;
+      const playerCenter = { x: player.pos.x + player.size.x / 2, y: player.pos.y + player.size.y / 2 };
+      const animalCenter = { x: animal.pos.x + animal.size.x / 2, y: animal.pos.y + animal.size.y / 2 };
+      const dx = playerCenter.x - animalCenter.x;
+      const dy = playerCenter.y - animalCenter.y;
+      const distToPlayer = Math.sqrt(dx * dx + dy * dy);
+
+      if (distToPlayer < 250) {
+        // Track player if close
+        const targetAngle = Math.atan2(dy, dx);
+        // Smoothly rotate towards player
+        let angleDiff = targetAngle - animal.angle;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        animal.angle += angleDiff * 0.05;
+      } else {
+        // Idle rotation
+        animal.angle += 0.01;
+      }
       
-      // Move in a small circle
-      const time = Date.now() * 0.001;
-      const radius = 30;
-      const baseX = level.animals![i].pos.x;
-      const baseY = level.animals![i].pos.y;
-      animal.pos.x = baseX + Math.cos(time + i) * radius;
-      animal.pos.y = baseY + Math.sin(time + i) * radius;
-      
-      if (isPointInVision(animal, { x: player.pos.x + player.size.x / 2, y: player.pos.y + player.size.y / 2 })) {
+      if (isPointInVision(animal, playerCenter)) {
         // Spawn a temporary NPC (human) if not too many
         if (npcs.filter(n => n.isTemporary).length < 2 && Math.random() < 0.02) {
           soundManager.playAlert();
