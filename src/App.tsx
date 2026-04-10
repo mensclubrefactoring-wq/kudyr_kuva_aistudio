@@ -5,9 +5,21 @@ import GameCanvas from './components/GameCanvas';
 import { GameState, LevelConfig } from './types';
 import { Language, translations } from './i18n';
 import { LEVELS } from './constants';
-import { Package, Home, Trophy, AlertTriangle } from 'lucide-react';
+import { Package, Home, Trophy, TriangleAlert } from 'lucide-react';
 
 type View = 'main' | 'level-select' | 'settings' | 'tutorial' | 'playing' | 'game-over' | 'victory';
+
+const HUDCard: React.FC<{ icon: React.ReactNode, label: string, value: string, alert?: boolean }> = ({ icon, label, value, alert }) => (
+  <div className={`flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md transition-all ${
+    alert ? 'bg-red-500/20 border-red-500/50 shadow-lg shadow-red-900/20' : 'bg-black/60 border-white/10'
+  }`}>
+    <div className="p-2 bg-white/5 rounded-lg">{alert ? <TriangleAlert className="text-red-500 animate-pulse" /> : icon}</div>
+    <div>
+      <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{label}</div>
+      <div className={`text-xl font-bold ${alert ? 'text-red-500' : 'text-white'}`}>{value}</div>
+    </div>
+  </div>
+);
 
 export default function App() {
   const [view, setView] = useState<View>('main');
@@ -196,15 +208,4 @@ export default function App() {
   );
 }
 
-const HUDCard: React.FC<{ icon: React.ReactNode, label: string, value: string, alert?: boolean }> = ({ icon, label, value, alert }) => (
-  <div className={`flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md transition-all ${
-    alert ? 'bg-red-500/20 border-red-500/50 shadow-lg shadow-red-900/20' : 'bg-black/60 border-white/10'
-  }`}>
-    <div className="p-2 bg-white/5 rounded-lg">{alert ? <AlertTriangle className="text-red-500 animate-pulse" /> : icon}</div>
-    <div>
-      <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{label}</div>
-      <div className={`text-xl font-bold ${alert ? 'text-red-500' : 'text-white'}`}>{value}</div>
-    </div>
-  </div>
-);
 

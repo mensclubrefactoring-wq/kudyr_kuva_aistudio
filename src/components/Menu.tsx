@@ -5,6 +5,22 @@ import { LevelConfig } from '../types';
 import { LEVELS } from '../constants';
 import { Language, translations } from '../i18n';
 
+const MenuButton: React.FC<{ icon: React.ReactNode, label: string, onClick: () => void, primary?: boolean }> = ({ icon, label, onClick, primary }) => (
+  <motion.button
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={onClick}
+    className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${
+      primary 
+        ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20 hover:bg-purple-500' 
+        : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/5'
+    }`}
+  >
+    <span className={primary ? 'text-white' : 'text-purple-400'}>{icon}</span>
+    {label}
+  </motion.button>
+);
+
 interface MenuProps {
   view: 'main' | 'level-select' | 'settings' | 'tutorial' | 'game-over' | 'victory';
   onStartGame: (level: LevelConfig) => void;
@@ -208,19 +224,4 @@ export const SettingsMenu: React.FC<{ onBack: () => void, language: Language, on
   );
 };
 
-const MenuButton: React.FC<{ icon: React.ReactNode, label: string, onClick: () => void, primary?: boolean }> = ({ icon, label, onClick, primary }) => (
-  <motion.button
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-    onClick={onClick}
-    className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${
-      primary 
-        ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20 hover:bg-purple-500' 
-        : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/5'
-    }`}
-  >
-    <span className={primary ? 'text-white' : 'text-purple-400'}>{icon}</span>
-    {label}
-  </motion.button>
-);
 
