@@ -45,7 +45,7 @@ export class LightingSystem {
     lCtx.clearRect(0, 0, width, height);
 
     // 1. darken scene
-    lCtx.fillStyle = "rgba(0,0,0,0.92)";
+    lCtx.fillStyle = "rgba(0,0,0,0.85)";
     lCtx.fillRect(0, 0, width, height);
 
     // 2. "cut out" light

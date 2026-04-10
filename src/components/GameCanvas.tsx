@@ -39,8 +39,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
   useEffect(() => {
     lightingRef.current = new LightingSystem(GAME_WIDTH, GAME_HEIGHT);
     
-    // Play initial scary sound
+    // Play initial scary sound and background music
     soundManager.playScaryAmbient();
+    soundManager.playBackgroundMusic();
 
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
@@ -141,10 +142,22 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     });
     // Portal light
     lighting.addLight(level.home.pos.x + level.home.size.x/2, level.home.pos.y + level.home.size.y/2, 150, 1, true);
-    // NPC vision lights (they carry lanterns)
+    
+    // Exit Portal light (if active)
+    if (itemsDeliveredRef.current >= WIN_SCORE && level.exitPortal) {
+      lighting.addLight(level.exitPortal.pos.x + level.exitPortal.size.x/2, level.exitPortal.pos.y + level.exitPortal.size.y/2, 300, 1, true);
+    }
+
+    // NPC vision lights (lanterns)
     npcs.forEach(npc => {
-      lighting.addLight(npc.pos.x + npc.size.x/2, npc.pos.y + npc.size.y/2, 120, 0.8, true);
+      lighting.addLight(npc.pos.x + npc.size.x/2, npc.pos.y + npc.size.y/2, 220, 1, true);
     });
+
+    // Animal lights (glowing eyes/presence)
+    animals.forEach(animal => {
+      lighting.addLight(animal.pos.x + animal.size.x/2, animal.pos.y + animal.size.y/2, 180, 0.9, true);
+    });
+
     lighting.update();
 
     // NPC movement and vision
@@ -182,9 +195,17 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     });
 
     // Animal logic
-    animals.forEach(animal => {
+    animals.forEach((animal, i) => {
       // Animals rotate slowly
       animal.angle += 0.01;
+      
+      // Move in a small circle
+      const time = Date.now() * 0.001;
+      const radius = 30;
+      const baseX = level.animals![i].pos.x;
+      const baseY = level.animals![i].pos.y;
+      animal.pos.x = baseX + Math.cos(time + i) * radius;
+      animal.pos.y = baseY + Math.sin(time + i) * radius;
       
       if (isPointInVision(animal, { x: player.pos.x + player.size.x / 2, y: player.pos.y + player.size.y / 2 })) {
         // Spawn a temporary NPC (human) if not too many
@@ -222,7 +243,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
         if (checkCollision(player, item)) {
           item.collected = true;
           player.inventory.push(item);
-          onUpdateState({ score: player.inventory.length });
+          // Update inventory weight/count
+          const currentWeight = player.inventory.length;
+          onUpdateState({ score: currentWeight });
         }
       }
     });
@@ -230,17 +253,26 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     // Item delivery
     if (checkCollision(player, level.home)) {
       if (player.inventory.length > 0) {
+        let deliveredValue = 0;
         player.inventory.forEach(item => {
           item.delivered = true;
           item.collected = false;
+          deliveredValue += item.value;
         });
-        itemsDeliveredRef.current += player.inventory.length;
+        itemsDeliveredRef.current += deliveredValue;
         player.inventory = [];
         onUpdateState({ itemsDelivered: itemsDeliveredRef.current, score: 0 });
         
         if (itemsDeliveredRef.current >= WIN_SCORE) {
-          onVictory();
+          onUpdateState({ canExit: true });
         }
+      }
+    }
+
+    // Exit Portal Logic
+    if (itemsDeliveredRef.current >= WIN_SCORE && level.exitPortal) {
+      if (checkCollision(player, level.exitPortal)) {
+        onVictory();
       }
     }
   };
@@ -285,13 +317,41 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     ctx.arc(home.pos.x + home.size.x / 2 - cam.x, home.pos.y + home.size.y / 2 - cam.y, home.size.x / 2, 0, Math.PI * 2);
     ctx.fill();
 
+    // Draw Exit Portal
+    if (itemsDeliveredRef.current >= WIN_SCORE && level.exitPortal) {
+      const exit = level.exitPortal;
+      const exitGrad = ctx.createRadialGradient(
+        exit.pos.x + exit.size.x / 2 - cam.x, exit.pos.y + exit.size.y / 2 - cam.y, 0,
+        exit.pos.x + exit.size.x / 2 - cam.x, exit.pos.y + exit.size.y / 2 - cam.y, exit.size.x / 2
+      );
+      exitGrad.addColorStop(0, 'rgba(0, 255, 100, 0.6)');
+      exitGrad.addColorStop(1, 'rgba(0, 255, 100, 0)');
+      ctx.fillStyle = exitGrad;
+      ctx.beginPath();
+      ctx.arc(exit.pos.x + exit.size.x / 2 - cam.x, exit.pos.y + exit.size.y / 2 - cam.y, exit.size.x / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     // Draw items
     itemsRef.current.forEach(item => {
       if (!item.collected && !item.delivered) {
-        ctx.fillStyle = '#ffd700';
+        if (item.category === 'rare') {
+          ctx.fillStyle = '#ff00ff'; // Rare items are magenta
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = '#ff00ff';
+        } else if (item.category === 'junk') {
+          ctx.fillStyle = '#555'; // Junk items are grey
+          ctx.shadowBlur = 0;
+        } else {
+          ctx.fillStyle = '#ffd700'; // Normal items are gold
+          ctx.shadowBlur = 5;
+          ctx.shadowColor = '#ffd700';
+        }
+        
         ctx.beginPath();
         ctx.arc(item.pos.x + item.size.x / 2 - cam.x, item.pos.y + item.size.y / 2 - cam.y, item.size.x / 2, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
       }
     });
 
@@ -333,6 +393,19 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     ctx.beginPath();
     ctx.ellipse(0, 0, player.size.x / 2, player.size.y / 3, 0, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Bright white eyes
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(8, -6, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(8, 6, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
     ctx.restore();
 
     // Apply Lighting

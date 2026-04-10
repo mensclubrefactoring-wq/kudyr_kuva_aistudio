@@ -49,20 +49,25 @@ export interface Animal extends Entity {
   speed: number;
 }
 
+export type ItemCategory = 'normal' | 'rare' | 'junk';
+
 export interface Item extends Entity {
   collected: boolean;
   delivered: boolean;
   itemType: string;
+  category: ItemCategory;
+  value: number; // 1 for normal, 3 for rare, 0 for junk
 }
 
 export interface GameState {
   level: number;
-  score: number;
+  score: number; // Current inventory weight/count
   totalItems: number;
   itemsDelivered: number;
   isGameOver: boolean;
   isVictory: boolean;
   isPaused: boolean;
+  canExit: boolean; // New flag to show exit portal
 }
 
 export interface LevelConfig {
@@ -74,6 +79,7 @@ export interface LevelConfig {
   npcs: NPC[];
   items: Item[];
   home: Entity;
+  exitPortal?: Entity; // New exit portal after collecting 30 items
   obstacles: Entity[];
   animals?: Animal[];
   staticLights?: { x: number, y: number, radius: number, flicker: boolean }[];

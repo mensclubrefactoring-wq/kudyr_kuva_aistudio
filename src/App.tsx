@@ -20,7 +20,8 @@ export default function App() {
     itemsDelivered: 0,
     isGameOver: false,
     isVictory: false,
-    isPaused: false
+    isPaused: false,
+    canExit: false
   });
 
   const startGame = (level: LevelConfig) => {
@@ -32,7 +33,8 @@ export default function App() {
       itemsDelivered: 0,
       isGameOver: false,
       isVictory: false,
-      isPaused: false
+      isPaused: false,
+      canExit: false
     });
     setView('playing');
   };
@@ -155,6 +157,18 @@ export default function App() {
                     label={t.delivered} 
                     value={`${gameState.itemsDelivered} / 30`} 
                   />
+                  {gameState.canExit && (
+                    <motion.div 
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="bg-green-500/20 border border-green-500/50 p-4 rounded-2xl flex items-center gap-3"
+                    >
+                      <Trophy className="text-green-400 animate-bounce" />
+                      <div className="text-xs font-bold text-green-400 uppercase tracking-wider">
+                        {t.nextLevel} Portal Open!
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
                 
                 <div className="bg-black/60 backdrop-blur-md border border-white/10 p-4 rounded-2xl">

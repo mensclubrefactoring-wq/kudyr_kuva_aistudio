@@ -72,6 +72,45 @@ class SoundManager {
     osc.start();
     osc.stop(this.ctx.currentTime + 0.3);
   }
+
+  // Simple synthesized background drone
+  private musicGain: GainNode | null = null;
+  playBackgroundMusic() {
+    this.init();
+    if (!this.ctx || this.musicGain) return;
+
+    this.musicGain = this.ctx.createGain();
+    this.musicGain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+    this.musicGain.connect(this.ctx.destination);
+
+    const playDrone = (freq: number, startTime: number) => {
+      if (!this.ctx || !this.musicGain) return;
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+      
+      g.gain.setValueAtTime(0, startTime);
+      g.gain.linearRampToValueAtTime(0.5, startTime + 2);
+      g.gain.linearRampToValueAtTime(0, startTime + 4);
+      
+      osc.connect(g);
+      g.connect(this.musicGain);
+      
+      osc.start(startTime);
+      osc.stop(startTime + 4);
+    };
+
+    const loop = () => {
+      if (!this.musicGain) return;
+      const now = this.ctx!.currentTime;
+      playDrone(60, now);
+      playDrone(62, now + 2);
+      setTimeout(loop, 4000);
+    };
+    loop();
+  }
 }
 
 export const soundManager = new SoundManager();
