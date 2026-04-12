@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { MainMenu, LevelSelect, Tutorial, SettingsMenu, GameOver, Victory } from './components/Menu';
 import GameCanvas from './components/GameCanvas';
+import { Joystick } from './components/Joystick';
 import { GameState, LevelConfig } from './types';
 import { Language, translations } from './i18n';
 import { LEVELS } from './constants';
@@ -25,6 +26,7 @@ export default function App() {
   const [view, setView] = useState<View>('main');
   const [language, setLanguage] = useState<Language>('ru');
   const [currentLevel, setCurrentLevel] = useState<LevelConfig | null>(null);
+  const [joystickVector, setJoystickVector] = useState({ x: 0, y: 0 });
   const [gameState, setGameState] = useState<GameState>({
     level: 1,
     score: 0,
@@ -194,7 +196,10 @@ export default function App() {
                 onGameOver={handleGameOver} 
                 onVictory={handleVictory}
                 onUpdateState={updateGameState}
+                joystickVector={joystickVector}
               />
+
+              <Joystick onMove={setJoystickVector} />
 
               {/* Controls Hint */}
               <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm px-6 py-2 rounded-full border border-white/5 text-xs text-gray-400">

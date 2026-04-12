@@ -9,12 +9,20 @@ interface GameCanvasProps {
   onGameOver: () => void;
   onVictory: () => void;
   onUpdateState: (state: Partial<GameState>) => void;
+  joystickVector?: { x: number; y: number };
 }
 
-const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, onUpdateState }) => {
+const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, onUpdateState, joystickVector }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number>(null);
   const lightingRef = useRef<LightingSystem | null>(null);
+  const joystickRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (joystickVector) {
+      joystickRef.current = joystickVector;
+    }
+  }, [joystickVector]);
   
   // Game state refs to avoid closure issues in the loop
   const playerRef = useRef<Player>({
@@ -100,10 +108,18 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     // Player movement
     let dx = 0;
     let dy = 0;
+    
+    // Keyboard input
     if (keysRef.current['ArrowUp'] || keysRef.current['w']) dy -= player.speed;
     if (keysRef.current['ArrowDown'] || keysRef.current['s']) dy += player.speed;
     if (keysRef.current['ArrowLeft'] || keysRef.current['a']) dx -= player.speed;
     if (keysRef.current['ArrowRight'] || keysRef.current['d']) dx += player.speed;
+
+    // Joystick input (additive)
+    if (joystickRef.current.x !== 0 || joystickRef.current.y !== 0) {
+      dx += joystickRef.current.x * player.speed;
+      dy += joystickRef.current.y * player.speed;
+    }
 
     if (dx !== 0 || dy !== 0) {
       player.angle = Math.atan2(dy, dx);
