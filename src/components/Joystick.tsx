@@ -79,17 +79,17 @@ export const Joystick: React.FC<JoystickProps> = ({ onMove }) => {
   }, [isDragging]);
 
   return (
-    <div className="fixed bottom-4 left-4 sm:bottom-12 sm:left-12 z-50 select-none touch-none">
+    <div className="fixed bottom-4 left-4 md:bottom-12 md:left-12 z-50 select-none touch-none">
       <div 
         ref={containerRef}
         onMouseDown={handleStart}
         onTouchStart={handleStart}
-        className="w-16 h-16 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center"
+        className="w-16 h-16 md:w-24 md:h-24 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center"
       >
         <motion.div 
           animate={{ x: position.x, y: position.y }}
           transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-          className="w-8 h-8 sm:w-12 sm:h-12 bg-purple-500 rounded-full shadow-lg shadow-purple-900/40 border border-purple-400/50"
+          className="w-8 h-8 md:w-12 md:h-12 bg-purple-500 rounded-full shadow-lg shadow-purple-900/40 border border-purple-400/50"
         />
       </div>
     </div>

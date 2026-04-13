@@ -13,10 +13,30 @@ interface GameCanvasProps {
 }
 
 const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, onUpdateState, joystickVector }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number>(null);
   const lightingRef = useRef<LightingSystem | null>(null);
   const joystickRef = useRef({ x: 0, y: 0 });
+  const [dimensions, setDimensions] = useState({ width: GAME_WIDTH, height: GAME_HEIGHT });
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        setDimensions({ width, height });
+        if (lightingRef.current) {
+          lightingRef.current = new LightingSystem(width, height);
+        }
+      }
+    };
+
+    const observer = new ResizeObserver(updateDimensions);
+    if (containerRef.current) observer.observe(containerRef.current);
+    updateDimensions();
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (joystickVector) {
@@ -45,7 +65,21 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
   const lastLaughTimeRef = useRef(0);
 
   useEffect(() => {
-    lightingRef.current = new LightingSystem(GAME_WIDTH, GAME_HEIGHT);
+    // Reset game entities for the new level
+    playerRef.current.pos = { x: level.home.pos.x + 20, y: level.home.pos.y + 20 };
+    playerRef.current.inventory = [];
+    npcsRef.current = level.npcs.map(npc => ({ ...npc }));
+    animalsRef.current = level.animals?.map(a => ({ ...a })) || [];
+    itemsRef.current = level.items.map(item => ({ ...item }));
+    itemsDeliveredRef.current = 0;
+
+    // Reset camera immediately to center on player
+    cameraRef.current.x = playerRef.current.pos.x + playerRef.current.size.x / 2 - dimensions.width / 2;
+    cameraRef.current.y = playerRef.current.pos.y + playerRef.current.size.y / 2 - dimensions.height / 2;
+    cameraRef.current.x = Math.max(0, Math.min(cameraRef.current.x, level.mapWidth - dimensions.width));
+    cameraRef.current.y = Math.max(0, Math.min(cameraRef.current.y, level.mapHeight - dimensions.height));
+
+    lightingRef.current = new LightingSystem(dimensions.width, dimensions.height);
     
     // Play initial scary sound and background music
     soundManager.playScaryAmbient();
@@ -54,7 +88,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [level]);
+  }, [level, dimensions.width, dimensions.height]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     keysRef.current[e.key] = true;
@@ -145,10 +179,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     }
 
     // Camera follow
-    cameraRef.current.x = player.pos.x + player.size.x / 2 - GAME_WIDTH / 2;
-    cameraRef.current.y = player.pos.y + player.size.y / 2 - GAME_HEIGHT / 2;
-    cameraRef.current.x = Math.max(0, Math.min(cameraRef.current.x, level.mapWidth - GAME_WIDTH));
-    cameraRef.current.y = Math.max(0, Math.min(cameraRef.current.y, level.mapHeight - GAME_HEIGHT));
+    cameraRef.current.x = player.pos.x + player.size.x / 2 - dimensions.width / 2;
+    cameraRef.current.y = player.pos.y + player.size.y / 2 - dimensions.height / 2;
+    cameraRef.current.x = Math.max(0, Math.min(cameraRef.current.x, level.mapWidth - dimensions.width));
+    cameraRef.current.y = Math.max(0, Math.min(cameraRef.current.y, level.mapHeight - dimensions.height));
 
     // Update Lighting
     lighting.clearLights();
@@ -304,20 +338,20 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
   const draw = (ctx: CanvasRenderingContext2D) => {
     const cam = cameraRef.current;
     const lighting = lightingRef.current;
-    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.clearRect(0, 0, dimensions.width, dimensions.height);
 
     // Draw background
     ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.fillRect(0, 0, dimensions.width, dimensions.height);
     
     // Draw grid
     ctx.strokeStyle = '#151515';
     ctx.lineWidth = 1;
-    for (let x = -cam.x % 100; x < GAME_WIDTH; x += 100) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, GAME_HEIGHT); ctx.stroke();
+    for (let x = -cam.x % 100; x < dimensions.width; x += 100) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, dimensions.height); ctx.stroke();
     }
-    for (let y = -cam.y % 100; y < GAME_HEIGHT; y += 100) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(GAME_WIDTH, y); ctx.stroke();
+    for (let y = -cam.y % 100; y < dimensions.height; y += 100) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(dimensions.width, y); ctx.stroke();
     }
 
     // Draw obstacles
@@ -453,12 +487,12 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
   }, [level]);
 
   return (
-    <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
+    <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
       <canvas
         ref={canvasRef}
-        width={GAME_WIDTH}
-        height={GAME_HEIGHT}
-        className="w-full h-full sm:w-auto sm:h-auto max-w-none max-h-none object-cover sm:object-contain sm:border-4 border-gray-800 sm:rounded-lg shadow-2xl scale-[1.02] sm:scale-100"
+        width={dimensions.width}
+        height={dimensions.height}
+        className="w-full h-full sm:border-4 border-gray-800 sm:rounded-lg shadow-2xl"
       />
       <div className="absolute top-4 right-4 w-24 sm:w-40 h-18 sm:h-30 bg-black/50 border border-white/20 rounded overflow-hidden pointer-events-none hidden sm:block">
         <div 
