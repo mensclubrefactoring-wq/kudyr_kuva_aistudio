@@ -14,7 +14,15 @@ const HUDCard: React.FC<{ icon: React.ReactNode, label: string, value: string, a
   <div className={`flex items-center gap-2 sm:gap-4 p-2 sm:p-4 rounded-xl sm:rounded-2xl border backdrop-blur-md transition-all ${
     alert ? 'bg-red-500/20 border-red-500/50 shadow-lg shadow-red-900/20' : 'bg-black/60 border-white/10'
   }`}>
-    <div className="p-1.5 sm:p-2 bg-white/5 rounded-lg">{alert ? <TriangleAlert className="text-red-500 animate-pulse size-4 sm:size-6" /> : React.cloneElement(icon as React.ReactElement, { className: `${(icon as React.ReactElement).props.className} size-4 sm:size-6` })}</div>
+    <div className="p-1.5 sm:p-2 bg-white/5 rounded-lg">
+      {alert ? (
+        <TriangleAlert className="text-red-500 animate-pulse size-4 sm:size-6" />
+      ) : (
+        React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { 
+          className: `${(icon as React.ReactElement<any>).props.className || ''} size-4 sm:size-6` 
+        }) : icon
+      )}
+    </div>
     <div>
       <div className="text-[8px] sm:text-[10px] text-gray-500 uppercase tracking-widest font-bold">{label}</div>
       <div className={`text-sm sm:text-xl font-bold ${alert ? 'text-red-500' : 'text-white'}`}>{value}</div>
