@@ -11,21 +11,21 @@ import { Package, Home, Trophy, TriangleAlert, Menu, X } from 'lucide-react';
 type View = 'main' | 'level-select' | 'settings' | 'tutorial' | 'playing' | 'game-over' | 'victory';
 
 const HUDCard: React.FC<{ icon: React.ReactNode, label: string, value: string, alert?: boolean }> = ({ icon, label, value, alert }) => (
-  <div className={`flex items-center gap-2 sm:gap-4 p-2 sm:p-4 rounded-xl sm:rounded-2xl border backdrop-blur-md transition-all ${
+  <div className={`flex items-center gap-1.5 sm:gap-4 p-1.5 sm:p-4 rounded-lg sm:rounded-2xl border backdrop-blur-md transition-all ${
     alert ? 'bg-red-500/20 border-red-500/50 shadow-lg shadow-red-900/20' : 'bg-black/60 border-white/10'
   }`}>
-    <div className="p-1.5 sm:p-2 bg-white/5 rounded-lg">
+    <div className="p-1 sm:p-2 bg-white/5 rounded-md sm:rounded-lg">
       {alert ? (
-        <TriangleAlert className="text-red-500 animate-pulse size-4 sm:size-6" />
+        <TriangleAlert className="text-red-500 animate-pulse size-3 sm:size-6" />
       ) : (
         React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { 
-          className: `${(icon as React.ReactElement<any>).props.className || ''} size-4 sm:size-6` 
+          className: `${(icon as React.ReactElement<any>).props.className || ''} size-3 sm:size-6` 
         }) : icon
       )}
     </div>
     <div>
-      <div className="text-[8px] sm:text-[10px] text-gray-500 uppercase tracking-widest font-bold">{label}</div>
-      <div className={`text-sm sm:text-xl font-bold ${alert ? 'text-red-500' : 'text-white'}`}>{value}</div>
+      <div className="text-[7px] sm:text-[10px] text-gray-500 uppercase tracking-widest font-bold leading-none">{label}</div>
+      <div className={`text-xs sm:text-xl font-bold leading-none mt-0.5 ${alert ? 'text-red-500' : 'text-white'}`}>{value}</div>
     </div>
   </div>
 );
@@ -36,6 +36,7 @@ export default function App() {
   const [currentLevel, setCurrentLevel] = useState<LevelConfig | null>(null);
   const [joystickVector, setJoystickVector] = useState({ x: 0, y: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showControlsHint, setShowControlsHint] = useState(true);
   const [gameState, setGameState] = useState<GameState>({
     level: 1,
     score: 0,
@@ -60,6 +61,8 @@ export default function App() {
       canExit: false
     });
     setView('playing');
+    setShowControlsHint(true);
+    setTimeout(() => setShowControlsHint(false), 3000);
   };
 
   const handleGameOver = useCallback(() => {
@@ -84,7 +87,7 @@ export default function App() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/10 blur-[150px] rounded-full" />
       </div>
 
-      <main className="relative z-10 w-full h-screen flex flex-col items-center justify-center p-4">
+      <main className="relative z-10 w-full h-screen flex flex-col items-center justify-center p-0 sm:p-4">
         <AnimatePresence mode="wait">
           {view === 'main' && (
             <MainMenu 
@@ -221,9 +224,18 @@ export default function App() {
               <Joystick onMove={setJoystickVector} />
 
               {/* Controls Hint */}
-              <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm px-4 sm:px-6 py-1 sm:py-2 rounded-full border border-white/5 text-[8px] sm:text-xs text-gray-400 whitespace-nowrap">
-                {t.controlsHint}
-              </div>
+              <AnimatePresence>
+                {showControlsHint && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm px-4 sm:px-6 py-1 sm:py-2 rounded-full border border-white/5 text-[8px] sm:text-xs text-gray-400 whitespace-nowrap z-30"
+                  >
+                    {t.controlsHint}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>

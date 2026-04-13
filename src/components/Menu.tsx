@@ -10,13 +10,13 @@ const MenuButton: React.FC<{ icon: React.ReactNode, label: string, onClick: () =
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    className={`flex items-center gap-4 w-full px-6 py-4 rounded-2xl font-bold transition-all ${
+    className={`flex items-center gap-3 sm:gap-4 w-full px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold transition-all text-sm sm:text-base ${
       primary 
         ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20 hover:bg-purple-500' 
         : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/5'
     }`}
   >
-    <span className={primary ? 'text-white' : 'text-purple-400'}>{icon}</span>
+    <span className={primary ? 'text-white' : 'text-purple-400'}>{React.cloneElement(icon as React.ReactElement, { size: 20 })}</span>
     {label}
   </motion.button>
 );
@@ -39,12 +39,12 @@ export const MainMenu: React.FC<MenuProps> = ({ onNavigate, language }) => {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center gap-6 p-12 bg-black/80 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl max-w-md w-full"
+      className="flex flex-col items-center gap-4 sm:gap-6 p-6 sm:p-12 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full"
     >
-      <h1 className="text-5xl font-bold text-white tracking-tighter mb-4 text-center">
+      <h1 className="text-3xl sm:text-5xl font-bold text-white tracking-tighter mb-2 sm:mb-4 text-center">
         {t.title.split(' ')[0]} <span className="text-purple-500">{t.title.split(' ')[1]}</span>
       </h1>
-      <p className="text-gray-400 text-center mb-8 italic">{t.subtitle}</p>
+      <p className="text-xs sm:text-sm text-gray-400 text-center mb-4 sm:mb-8 italic">{t.subtitle}</p>
       
       <MenuButton icon={<Play />} label={t.startJourney} onClick={() => onNavigate('level-select')} primary />
       <MenuButton icon={<Info />} label={t.howToPlay} onClick={() => onNavigate('tutorial')} />
@@ -59,20 +59,20 @@ export const LevelSelect: React.FC<MenuProps> = ({ onStartGame, onBack, language
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center gap-6 p-8 bg-black/80 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl max-w-4xl w-full"
+      className="flex flex-col items-center gap-4 sm:gap-6 p-4 sm:p-8 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl max-w-4xl w-full"
     >
-      <h2 className="text-3xl font-bold text-white mb-6">{t.selectLocation}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+      <h2 className="text-xl sm:text-3xl font-bold text-white mb-2 sm:mb-6">{t.selectLocation}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 w-full overflow-y-auto max-h-[60vh] sm:max-h-none pr-1">
         {LEVELS.map((level) => (
           <motion.div
             key={level.id}
             whileHover={{ y: -5, borderColor: 'rgba(168, 85, 247, 0.4)' }}
             onClick={() => onStartGame(level)}
-            className="p-6 bg-white/5 border border-white/10 rounded-2xl cursor-pointer transition-colors"
+            className="p-4 sm:p-6 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl cursor-pointer transition-colors"
           >
-            <h3 className="text-xl font-bold text-white mb-2">{t.levelNames[level.id]}</h3>
-            <p className="text-sm text-gray-400 mb-4">{t.levelDescs[level.id]}</p>
-            <div className="text-xs text-purple-400 uppercase tracking-widest font-bold">Level {level.id}</div>
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">{t.levelNames[level.id]}</h3>
+            <p className="text-xs sm:text-sm text-gray-400 mb-2 sm:mb-4">{t.levelDescs[level.id]}</p>
+            <div className="text-[10px] text-purple-400 uppercase tracking-widest font-bold">Level {level.id}</div>
           </motion.div>
         ))}
       </div>
@@ -89,33 +89,33 @@ export const Tutorial: React.FC<MenuProps> = ({ onBack, language }) => {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col items-center gap-6 p-10 bg-black/80 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl max-w-2xl w-full text-white"
+      className="flex flex-col items-center gap-4 sm:gap-6 p-6 sm:p-10 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl max-w-2xl w-full text-white"
     >
-      <h2 className="text-3xl font-bold mb-6">{t.ancientWisdom}</h2>
-      <div className="space-y-6 text-gray-300">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-purple-500/20 rounded-lg text-purple-400"><Play size={24} /></div>
+      <h2 className="text-xl sm:text-3xl font-bold mb-2 sm:mb-6">{t.ancientWisdom}</h2>
+      <div className="space-y-4 sm:space-y-6 text-gray-300 overflow-y-auto max-h-[60vh] sm:max-h-none pr-1">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="p-2 sm:p-3 bg-purple-500/20 rounded-lg text-purple-400"><Play size={20} className="sm:size-6" /></div>
           <div>
-            <h4 className="font-bold text-white">{t.movement}</h4>
-            <p>{t.movementDesc}</p>
+            <h4 className="text-sm sm:text-base font-bold text-white">{t.movement}</h4>
+            <p className="text-xs sm:text-sm">{t.movementDesc}</p>
           </div>
         </div>
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-blue-500/20 rounded-lg text-blue-400"><EyeOff size={24} /></div>
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="p-2 sm:p-3 bg-blue-500/20 rounded-lg text-blue-400"><EyeOff size={20} className="sm:size-6" /></div>
           <div>
-            <h4 className="font-bold text-white">{t.stealth}</h4>
-            <p>{t.stealthDesc}</p>
+            <h4 className="text-sm sm:text-base font-bold text-white">{t.stealth}</h4>
+            <p className="text-xs sm:text-sm">{t.stealthDesc}</p>
           </div>
         </div>
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-yellow-500/20 rounded-lg text-yellow-400"><Trophy size={24} /></div>
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="p-2 sm:p-3 bg-yellow-500/20 rounded-lg text-yellow-400"><Trophy size={20} className="sm:size-6" /></div>
           <div>
-            <h4 className="font-bold text-white">{t.collection}</h4>
-            <p>{t.collectionDesc}</p>
+            <h4 className="text-sm sm:text-base font-bold text-white">{t.collection}</h4>
+            <p className="text-xs sm:text-sm">{t.collectionDesc}</p>
           </div>
         </div>
       </div>
-      <button onClick={onBack} className="mt-8 px-8 py-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors">
+      <button onClick={onBack} className="mt-4 sm:mt-8 px-6 sm:px-8 py-2 sm:py-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-sm sm:text-base">
         {t.understand}
       </button>
     </motion.div>
@@ -128,13 +128,13 @@ export const GameOver: React.FC<MenuProps> = ({ onBack, onNavigate, language }) 
     <motion.div 
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center gap-6 p-12 bg-red-950/40 backdrop-blur-2xl border border-red-500/30 rounded-3xl shadow-2xl max-w-md w-full text-center"
+      className="flex flex-col items-center gap-4 sm:gap-6 p-6 sm:p-12 bg-red-950/40 backdrop-blur-2xl border border-red-500/30 rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full text-center"
     >
-      <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center text-red-500 mb-4">
-        <Eye size={48} />
+      <div className="w-12 h-12 sm:w-20 sm:h-20 bg-red-500/20 rounded-full flex items-center justify-center text-red-500 mb-2 sm:mb-4">
+        <Eye size={32} className="sm:size-[48px]" />
       </div>
-      <h2 className="text-4xl font-bold text-white">{t.seenByHumans}</h2>
-      <p className="text-red-200/70">{t.discovered}</p>
+      <h2 className="text-2xl sm:text-4xl font-bold text-white">{t.seenByHumans}</h2>
+      <p className="text-xs sm:text-sm text-red-200/70">{t.discovered}</p>
       <MenuButton icon={<RotateCcw />} label={t.tryAgain} onClick={onBack} primary />
       <MenuButton icon={<Home />} label={t.mainMenu} onClick={() => onNavigate('main')} />
     </motion.div>
@@ -149,15 +149,15 @@ export const Victory: React.FC<MenuProps> = ({ itemsDelivered, onNavigate, langu
     <motion.div 
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center gap-6 p-12 bg-purple-950/40 backdrop-blur-2xl border border-purple-500/30 rounded-3xl shadow-2xl max-w-md w-full text-center"
+      className="flex flex-col items-center gap-4 sm:gap-6 p-6 sm:p-12 bg-purple-950/40 backdrop-blur-2xl border border-purple-500/30 rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full text-center"
     >
-      <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-400 mb-4">
-        <Trophy size={48} />
+      <div className="w-12 h-12 sm:w-20 sm:h-20 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-400 mb-2 sm:mb-4">
+        <Trophy size={32} className="sm:size-[48px]" />
       </div>
-      <h2 className="text-4xl font-bold text-white">
+      <h2 className="text-2xl sm:text-4xl font-bold text-white">
         {isFinalVictory ? t.legendaryStealth : t.levelComplete}
       </h2>
-      <p className="text-purple-200/70">
+      <p className="text-xs sm:text-sm text-purple-200/70">
         {isFinalVictory 
           ? t.victoryDesc.replace('{items}', itemsDelivered?.toString() || '30')
           : `${t.delivered}: ${itemsDelivered} / 30`}
