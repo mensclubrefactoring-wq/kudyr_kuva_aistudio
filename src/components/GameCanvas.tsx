@@ -453,14 +453,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
   }, [level]);
 
   return (
-    <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
+    <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center p-2 sm:p-0">
       <canvas
         ref={canvasRef}
         width={GAME_WIDTH}
         height={GAME_HEIGHT}
-        className="border-4 border-gray-800 rounded-lg shadow-2xl"
+        className="max-w-full max-h-full object-contain border-2 sm:border-4 border-gray-800 rounded-lg shadow-2xl"
       />
-      <div className="absolute top-4 right-4 w-40 h-30 bg-black/50 border border-white/20 rounded overflow-hidden pointer-events-none">
+      <div className="absolute top-4 right-4 w-24 sm:w-40 h-18 sm:h-30 bg-black/50 border border-white/20 rounded overflow-hidden pointer-events-none hidden sm:block">
         <div 
           className="absolute bg-blue-500 w-2 h-2 rounded-full"
           style={{ 

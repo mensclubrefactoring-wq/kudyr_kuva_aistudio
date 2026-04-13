@@ -6,18 +6,18 @@ import { Joystick } from './components/Joystick';
 import { GameState, LevelConfig } from './types';
 import { Language, translations } from './i18n';
 import { LEVELS } from './constants';
-import { Package, Home, Trophy, TriangleAlert } from 'lucide-react';
+import { Package, Home, Trophy, TriangleAlert, Menu, X } from 'lucide-react';
 
 type View = 'main' | 'level-select' | 'settings' | 'tutorial' | 'playing' | 'game-over' | 'victory';
 
 const HUDCard: React.FC<{ icon: React.ReactNode, label: string, value: string, alert?: boolean }> = ({ icon, label, value, alert }) => (
-  <div className={`flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md transition-all ${
+  <div className={`flex items-center gap-2 sm:gap-4 p-2 sm:p-4 rounded-xl sm:rounded-2xl border backdrop-blur-md transition-all ${
     alert ? 'bg-red-500/20 border-red-500/50 shadow-lg shadow-red-900/20' : 'bg-black/60 border-white/10'
   }`}>
-    <div className="p-2 bg-white/5 rounded-lg">{alert ? <TriangleAlert className="text-red-500 animate-pulse" /> : icon}</div>
+    <div className="p-1.5 sm:p-2 bg-white/5 rounded-lg">{alert ? <TriangleAlert className="text-red-500 animate-pulse size-4 sm:size-6" /> : React.cloneElement(icon as React.ReactElement, { className: `${(icon as React.ReactElement).props.className} size-4 sm:size-6` })}</div>
     <div>
-      <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{label}</div>
-      <div className={`text-xl font-bold ${alert ? 'text-red-500' : 'text-white'}`}>{value}</div>
+      <div className="text-[8px] sm:text-[10px] text-gray-500 uppercase tracking-widest font-bold">{label}</div>
+      <div className={`text-sm sm:text-xl font-bold ${alert ? 'text-red-500' : 'text-white'}`}>{value}</div>
     </div>
   </div>
 );
@@ -27,6 +27,7 @@ export default function App() {
   const [language, setLanguage] = useState<Language>('ru');
   const [currentLevel, setCurrentLevel] = useState<LevelConfig | null>(null);
   const [joystickVector, setJoystickVector] = useState({ x: 0, y: 0 });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [gameState, setGameState] = useState<GameState>({
     level: 1,
     score: 0,
@@ -158,8 +159,8 @@ export default function App() {
               className="w-full h-full flex flex-col items-center justify-center"
             >
               {/* HUD */}
-              <div className="absolute top-8 left-8 right-8 flex justify-between items-start pointer-events-none z-20">
-                <div className="flex flex-col gap-2">
+              <div className="absolute top-4 sm:top-8 left-4 sm:left-8 right-4 sm:right-8 flex justify-between items-start pointer-events-none z-20">
+                <div className={`flex flex-col gap-2 transition-all duration-300 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'max-sm:-translate-x-full max-sm:opacity-0'}`}>
                   <HUDCard 
                     icon={<Package className="text-yellow-400" />} 
                     label={t.carrying} 
@@ -175,19 +176,29 @@ export default function App() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="bg-green-500/20 border border-green-500/50 p-4 rounded-2xl flex items-center gap-3"
+                      className="bg-green-500/20 border border-green-500/50 p-2 sm:p-4 rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-3"
                     >
-                      <Trophy className="text-green-400 animate-bounce" />
-                      <div className="text-xs font-bold text-green-400 uppercase tracking-wider">
+                      <Trophy className="text-green-400 animate-bounce size-4 sm:size-6" />
+                      <div className="text-[8px] sm:text-xs font-bold text-green-400 uppercase tracking-wider">
                         {t.nextLevel} Portal Open!
                       </div>
                     </motion.div>
                   )}
                 </div>
                 
-                <div className="bg-black/60 backdrop-blur-md border border-white/10 p-4 rounded-2xl">
-                  <div className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">{t.currentLocation}</div>
-                  <div className="text-lg font-bold">{t.levelNames[currentLevel.id]}</div>
+                <div className="flex flex-col items-end gap-2">
+                  {/* Mobile Toggle Button */}
+                  <button 
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="sm:hidden pointer-events-auto p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-white"
+                  >
+                    {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                  </button>
+
+                  <div className={`bg-black/60 backdrop-blur-md border border-white/10 p-2 sm:p-4 rounded-xl sm:rounded-2xl transition-all duration-300 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'max-sm:translate-x-full max-sm:opacity-0'}`}>
+                    <div className="text-[8px] sm:text-xs text-gray-500 uppercase tracking-widest font-bold mb-0.5 sm:mb-1">{t.currentLocation}</div>
+                    <div className="text-xs sm:text-lg font-bold">{t.levelNames[currentLevel.id]}</div>
+                  </div>
                 </div>
               </div>
 
@@ -202,7 +213,7 @@ export default function App() {
               <Joystick onMove={setJoystickVector} />
 
               {/* Controls Hint */}
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm px-6 py-2 rounded-full border border-white/5 text-xs text-gray-400">
+              <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm px-4 sm:px-6 py-1 sm:py-2 rounded-full border border-white/5 text-[8px] sm:text-xs text-gray-400 whitespace-nowrap">
                 {t.controlsHint}
               </div>
             </motion.div>
