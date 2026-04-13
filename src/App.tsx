@@ -6,12 +6,12 @@ import { Joystick } from './components/Joystick';
 import { GameState, LevelConfig } from './types';
 import { Language, translations } from './i18n';
 import { LEVELS } from './constants';
-import { Package, Home, Trophy, TriangleAlert, Menu, X } from 'lucide-react';
+import { Package, Home, Trophy, TriangleAlert, Menu, X, Maximize, Minimize } from 'lucide-react';
 
 type View = 'main' | 'level-select' | 'settings' | 'tutorial' | 'playing' | 'game-over' | 'victory';
 
 const HUDCard: React.FC<{ icon: React.ReactNode, label: string, value: string, alert?: boolean }> = ({ icon, label, value, alert }) => (
-  <div className={`flex items-center gap-1.5 sm:gap-4 p-1.5 sm:p-4 rounded-lg sm:rounded-2xl border backdrop-blur-md transition-all ${
+  <div className={`flex items-center gap-1.5 sm:gap-4 p-1.5 sm:p-4 rounded-lg sm:rounded-2xl border backdrop-blur-md transition-all pointer-events-auto ${
     alert ? 'bg-red-500/20 border-red-500/50 shadow-lg shadow-red-900/20' : 'bg-black/60 border-white/10'
   }`}>
     <div className="p-1 sm:p-2 bg-white/5 rounded-md sm:rounded-lg">
@@ -37,6 +37,7 @@ export default function App() {
   const [joystickVector, setJoystickVector] = useState({ x: 0, y: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showControlsHint, setShowControlsHint] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [gameState, setGameState] = useState<GameState>({
     level: 1,
     score: 0,
@@ -76,6 +77,18 @@ export default function App() {
   const updateGameState = useCallback((newState: Partial<GameState>) => {
     setGameState(prev => ({ ...prev, ...newState }));
   }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
 
   const t = translations[language];
 
@@ -170,8 +183,8 @@ export default function App() {
               className="w-full h-full flex flex-col items-center justify-center"
             >
               {/* HUD */}
-              <div className="absolute top-4 sm:top-8 left-4 sm:left-8 right-4 sm:right-8 flex justify-between items-start pointer-events-none z-20">
-                <div className={`flex flex-col gap-2 transition-all duration-300 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'max-sm:-translate-x-full max-sm:opacity-0'}`}>
+              <div className="absolute top-4 sm:top-8 left-4 sm:left-8 right-4 sm:right-8 flex justify-between items-start pointer-events-none z-20 safe-top">
+                <div className={`flex flex-col gap-2 transition-all duration-500 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'max-sm:-translate-x-full max-sm:opacity-0'}`}>
                   <HUDCard 
                     icon={<Package className="text-yellow-400" />} 
                     label={t.carrying} 
@@ -187,7 +200,7 @@ export default function App() {
                     <motion.div 
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="bg-green-500/20 border border-green-500/50 p-2 sm:p-4 rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-3"
+                      className="bg-green-500/20 border border-green-500/50 p-2 sm:p-4 rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-3 pointer-events-auto"
                     >
                       <Trophy className="text-green-400 animate-bounce size-4 sm:size-6" />
                       <div className="text-[8px] sm:text-xs font-bold text-green-400 uppercase tracking-wider">
@@ -198,17 +211,28 @@ export default function App() {
                 </div>
                 
                 <div className="flex flex-col items-end gap-2">
-                  {/* Mobile Toggle Button */}
-                  <button 
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="sm:hidden pointer-events-auto p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-white"
-                  >
-                    {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-                  </button>
+                  <div className="flex gap-2 pointer-events-auto">
+                    {/* Fullscreen Toggle */}
+                    <button 
+                      onClick={toggleFullscreen}
+                      className="p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-white hover:bg-white/10 transition-colors"
+                      title="Toggle Fullscreen"
+                    >
+                      {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                    </button>
 
-                  <div className={`bg-black/60 backdrop-blur-md border border-white/10 p-2 sm:p-4 rounded-xl sm:rounded-2xl transition-all duration-300 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'max-sm:translate-x-full max-sm:opacity-0'}`}>
-                    <div className="text-[8px] sm:text-xs text-gray-500 uppercase tracking-widest font-bold mb-0.5 sm:mb-1">{t.currentLocation}</div>
-                    <div className="text-xs sm:text-lg font-bold">{t.levelNames[currentLevel.id]}</div>
+                    {/* Mobile Toggle Button (Sandwich) */}
+                    <button 
+                      onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                      className="sm:hidden p-2 bg-purple-600 backdrop-blur-md border border-purple-400/50 rounded-full text-white shadow-lg shadow-purple-900/40"
+                    >
+                      {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                    </button>
+                  </div>
+
+                  <div className={`bg-black/60 backdrop-blur-md border border-white/10 p-2 sm:p-4 rounded-xl sm:rounded-2xl transition-all duration-500 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'max-sm:translate-x-full max-sm:opacity-0'}`}>
+                    <div className="text-[8px] sm:text-xs text-gray-500 uppercase tracking-widest font-bold mb-0.5 sm:mb-1 leading-none">{t.currentLocation}</div>
+                    <div className="text-xs sm:text-lg font-bold leading-none">{t.levelNames[currentLevel.id]}</div>
                   </div>
                 </div>
               </div>
@@ -230,7 +254,7 @@ export default function App() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
-                    className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm px-4 sm:px-6 py-1 sm:py-2 rounded-full border border-white/5 text-[8px] sm:text-xs text-gray-400 whitespace-nowrap z-30"
+                    className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm px-4 sm:px-6 py-1 sm:py-2 rounded-full border border-white/5 text-[8px] sm:text-xs text-gray-400 whitespace-nowrap z-30 landscape:hidden"
                   >
                     {t.controlsHint}
                   </motion.div>
