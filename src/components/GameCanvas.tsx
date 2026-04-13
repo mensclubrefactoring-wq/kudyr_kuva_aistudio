@@ -65,29 +65,27 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
   const lastLaughTimeRef = useRef(0);
 
   useEffect(() => {
-    // Reset game entities for the new level
+    // Reset game entities ONLY when the level changes
     playerRef.current.pos = { x: level.home.pos.x + 20, y: level.home.pos.y + 20 };
     playerRef.current.inventory = [];
     npcsRef.current = level.npcs.map(npc => ({ ...npc }));
     animalsRef.current = level.animals?.map(a => ({ ...a })) || [];
     itemsRef.current = level.items.map(item => ({ ...item }));
     itemsDeliveredRef.current = 0;
+    
+    // Play initial scary sound and background music
+    soundManager.playScaryAmbient();
+    soundManager.playBackgroundMusic();
+  }, [level]);
 
-    // Reset camera immediately to center on player
+  useEffect(() => {
+    // Update camera and lighting when dimensions or level change, but DON'T reset entities
     cameraRef.current.x = playerRef.current.pos.x + playerRef.current.size.x / 2 - dimensions.width / 2;
     cameraRef.current.y = playerRef.current.pos.y + playerRef.current.size.y / 2 - dimensions.height / 2;
     cameraRef.current.x = Math.max(0, Math.min(cameraRef.current.x, level.mapWidth - dimensions.width));
     cameraRef.current.y = Math.max(0, Math.min(cameraRef.current.y, level.mapHeight - dimensions.height));
 
     lightingRef.current = new LightingSystem(dimensions.width, dimensions.height);
-    
-    // Play initial scary sound and background music
-    soundManager.playScaryAmbient();
-    soundManager.playBackgroundMusic();
-
-    return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    };
   }, [level, dimensions.width, dimensions.height]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -137,8 +135,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     const animals = animalsRef.current;
     const lighting = lightingRef.current;
 
-    if (!lighting) return;
-
     // Player movement
     let dx = 0;
     let dy = 0;
@@ -185,30 +181,32 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     cameraRef.current.y = Math.max(0, Math.min(cameraRef.current.y, level.mapHeight - dimensions.height));
 
     // Update Lighting
-    lighting.clearLights();
-    // Static lights
-    level.staticLights?.forEach(light => {
-      lighting.addLight(light.x, light.y, light.radius, 1, light.flicker);
-    });
-    // Portal light
-    lighting.addLight(level.home.pos.x + level.home.size.x/2, level.home.pos.y + level.home.size.y/2, 150, 1, true);
-    
-    // Exit Portal light (if active)
-    if (itemsDeliveredRef.current >= WIN_SCORE && level.exitPortal) {
-      lighting.addLight(level.exitPortal.pos.x + level.exitPortal.size.x/2, level.exitPortal.pos.y + level.exitPortal.size.y/2, 300, 1, true);
+    if (lighting) {
+      lighting.clearLights();
+      // Static lights
+      level.staticLights?.forEach(light => {
+        lighting.addLight(light.x, light.y, light.radius, 1, light.flicker);
+      });
+      // Portal light
+      lighting.addLight(level.home.pos.x + level.home.size.x/2, level.home.pos.y + level.home.size.y/2, 150, 1, true);
+      
+      // Exit Portal light (if active)
+      if (itemsDeliveredRef.current >= WIN_SCORE && level.exitPortal) {
+        lighting.addLight(level.exitPortal.pos.x + level.exitPortal.size.x/2, level.exitPortal.pos.y + level.exitPortal.size.y/2, 300, 1, true);
+      }
+
+      // NPC vision lights (lanterns)
+      npcs.forEach(npc => {
+        lighting.addLight(npc.pos.x + npc.size.x/2, npc.pos.y + npc.size.y/2, 220, 1, true);
+      });
+
+      // Animal lights (glowing eyes/presence)
+      animals.forEach(animal => {
+        lighting.addLight(animal.pos.x + animal.size.x/2, animal.pos.y + animal.size.y/2, 180, 0.9, true);
+      });
+
+      lighting.update();
     }
-
-    // NPC vision lights (lanterns)
-    npcs.forEach(npc => {
-      lighting.addLight(npc.pos.x + npc.size.x/2, npc.pos.y + npc.size.y/2, 220, 1, true);
-    });
-
-    // Animal lights (glowing eyes/presence)
-    animals.forEach(animal => {
-      lighting.addLight(animal.pos.x + animal.size.x/2, animal.pos.y + animal.size.y/2, 180, 0.9, true);
-    });
-
-    lighting.update();
 
     // NPC movement and vision
     npcs.forEach((npc, index) => {
@@ -228,7 +226,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
       // Vision check: Only seen if in light OR very close to NPC
       const playerCenter = { x: player.pos.x + player.size.x / 2, y: player.pos.y + player.size.y / 2 };
       if (isPointInVision(npc, playerCenter)) {
-        const inLight = lighting.isInLight(playerCenter.x, playerCenter.y);
+        const inLight = lighting ? lighting.isInLight(playerCenter.x, playerCenter.y) : false;
         const veryClose = dist < 60;
         if (inLight || veryClose) {
           onGameOver();
@@ -484,7 +482,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [level]);
+  }, [level, dimensions.width, dimensions.height]);
 
   return (
     <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
