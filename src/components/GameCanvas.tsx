@@ -492,9 +492,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ level, onGameOver, onVictory, o
         height={dimensions.height}
         className="w-full h-full sm:border-4 border-gray-800 sm:rounded-lg shadow-2xl"
       />
-      <div className="absolute top-4 right-4 w-24 sm:w-40 h-18 sm:h-30 bg-black/50 border border-white/20 rounded overflow-hidden pointer-events-none hidden sm:block">
+      <div className="absolute bottom-4 left-4 w-24 sm:w-40 h-18 sm:h-30 bg-black/20 border border-white/10 rounded overflow-hidden pointer-events-none hidden sm:block backdrop-blur-[2px]">
         <div 
-          className="absolute bg-blue-500 w-2 h-2 rounded-full"
+          className="absolute bg-blue-500/60 w-2 h-2 rounded-full"
           style={{ 
             left: `${(playerRef.current.pos.x / level.mapWidth) * 100}%`,
             top: `${(playerRef.current.pos.y / level.mapHeight) * 100}%`

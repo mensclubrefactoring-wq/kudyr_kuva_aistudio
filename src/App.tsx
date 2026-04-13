@@ -11,21 +11,21 @@ import { Package, Home, Trophy, TriangleAlert, Menu, X, Maximize, Minimize } fro
 type View = 'main' | 'level-select' | 'settings' | 'tutorial' | 'playing' | 'game-over' | 'victory';
 
 const HUDCard: React.FC<{ icon: React.ReactNode, label: string, value: string, alert?: boolean }> = ({ icon, label, value, alert }) => (
-  <div className={`flex items-center gap-1.5 md:gap-4 p-1.5 md:p-4 rounded-lg md:rounded-2xl border backdrop-blur-md transition-all pointer-events-auto ${
+  <div className={`flex items-center gap-1.5 md:gap-2.5 p-1.5 md:p-2.5 rounded-lg md:rounded-xl border backdrop-blur-md transition-all pointer-events-auto ${
     alert ? 'bg-red-500/20 border-red-500/50 shadow-lg shadow-red-900/20' : 'bg-black/60 border-white/10'
   }`}>
-    <div className="p-1 md:p-2 bg-white/5 rounded-md md:rounded-lg">
+    <div className="p-1 md:p-1.5 bg-white/5 rounded-md md:rounded-lg">
       {alert ? (
-        <TriangleAlert className="text-red-500 animate-pulse size-3 md:size-6" />
+        <TriangleAlert className="text-red-500 animate-pulse size-3 md:size-4" />
       ) : (
         React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { 
-          className: `${(icon as React.ReactElement<any>).props.className || ''} size-3 md:size-6` 
+          className: `${(icon as React.ReactElement<any>).props.className || ''} size-3 md:size-4` 
         }) : icon
       )}
     </div>
     <div>
-      <div className="text-[7px] md:text-[10px] text-gray-500 uppercase tracking-widest font-bold leading-none">{label}</div>
-      <div className={`text-xs md:text-xl font-bold leading-none mt-0.5 ${alert ? 'text-red-500' : 'text-white'}`}>{value}</div>
+      <div className="text-[7px] md:text-[9px] text-gray-500 uppercase tracking-widest font-bold leading-none">{label}</div>
+      <div className={`text-xs md:text-sm font-bold leading-none mt-0.5 ${alert ? 'text-red-500' : 'text-white'}`}>{value}</div>
     </div>
   </div>
 );
@@ -183,33 +183,7 @@ export default function App() {
               className="w-full h-full flex flex-col items-center justify-center"
             >
               {/* HUD */}
-              <div className="absolute top-4 md:top-8 left-4 md:left-8 right-4 md:right-8 flex justify-between items-start pointer-events-none z-20 safe-top">
-                <div className={`flex flex-col gap-2 transition-all duration-500 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'max-md:-translate-x-full max-md:opacity-0'}`}>
-                  <HUDCard 
-                    icon={<Package className="text-yellow-400" />} 
-                    label={t.carrying} 
-                    value={`${gameState.score} / 6`} 
-                    alert={gameState.score >= 6}
-                  />
-                  <HUDCard 
-                    icon={<Home className="text-purple-400" />} 
-                    label={t.delivered} 
-                    value={`${gameState.itemsDelivered} / 30`} 
-                  />
-                  {gameState.canExit && (
-                    <motion.div 
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="bg-green-500/20 border border-green-500/50 p-2 md:p-4 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 pointer-events-auto"
-                    >
-                      <Trophy className="text-green-400 animate-bounce size-4 md:size-6" />
-                      <div className="text-[8px] md:text-xs font-bold text-green-400 uppercase tracking-wider">
-                        {t.nextLevel} Portal Open!
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-                
+              <div className="absolute top-4 md:top-8 left-4 md:left-8 right-4 md:right-8 flex justify-end items-start pointer-events-none z-20 safe-top">
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex gap-2 pointer-events-auto">
                     {/* Fullscreen Toggle */}
@@ -221,18 +195,46 @@ export default function App() {
                       {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
                     </button>
 
-                    {/* Mobile/Tablet Toggle Button (Sandwich) */}
+                    {/* Toggle Button (Sandwich) - Always available */}
                     <button 
                       onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                      className="md:hidden p-2 bg-purple-600 backdrop-blur-md border border-purple-400/50 rounded-full text-white shadow-lg shadow-purple-900/40"
+                      className="p-2 bg-purple-600 backdrop-blur-md border border-purple-400/50 rounded-full text-white shadow-lg shadow-purple-900/40"
                     >
                       {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
                     </button>
                   </div>
 
-                  <div className={`bg-black/60 backdrop-blur-md border border-white/10 p-2 md:p-4 rounded-xl md:rounded-2xl transition-all duration-500 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'max-md:translate-x-full max-md:opacity-0'}`}>
-                    <div className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-0.5 md:mb-1 leading-none">{t.currentLocation}</div>
-                    <div className="text-xs md:text-lg font-bold leading-none">{t.levelNames[currentLevel.id]}</div>
+                  {/* HUD Panels Stack */}
+                  <div className={`flex flex-col items-end gap-2 transition-all duration-500 ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
+                    <div className="bg-black/60 backdrop-blur-md border border-white/10 p-2 md:p-3 rounded-xl md:rounded-2xl">
+                      <div className="text-[8px] md:text-[9px] text-gray-500 uppercase tracking-widest font-bold mb-0.5 md:mb-1 leading-none">{t.currentLocation}</div>
+                      <div className="text-xs md:text-sm font-bold leading-none">{t.levelNames[currentLevel.id]}</div>
+                    </div>
+
+                    <HUDCard 
+                      icon={<Package className="text-yellow-400" />} 
+                      label={t.carrying} 
+                      value={`${gameState.score} / 6`} 
+                      alert={gameState.score >= 6}
+                    />
+                    <HUDCard 
+                      icon={<Home className="text-purple-400" />} 
+                      label={t.delivered} 
+                      value={`${gameState.itemsDelivered} / 30`} 
+                    />
+                    
+                    {gameState.canExit && (
+                      <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="bg-green-500/20 border border-green-500/50 p-2 md:p-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 pointer-events-auto"
+                      >
+                        <Trophy className="text-green-400 animate-bounce size-4 md:size-5" />
+                        <div className="text-[8px] md:text-[9px] font-bold text-green-400 uppercase tracking-wider">
+                          {t.nextLevel} Portal Open!
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
               </div>
